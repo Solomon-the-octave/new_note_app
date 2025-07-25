@@ -25,6 +25,7 @@ class _NotesPageState extends State<NotesPage> {
   static const backgroundColor = Color(0xFFF5F5F5); // Light gray background
   static const cardColor = Colors.white;
 
+
   Future<void> _saveNote() async {
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
