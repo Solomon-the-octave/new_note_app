@@ -17,6 +17,14 @@ class _NotesPageState extends State<NotesPage> {
   bool _isLoading = false;
   bool _showNoteForm = false;
 
+  // Color scheme matching the previous screens
+  static const primaryColor = Color(0xFF2E7D32); // Dark green
+  static const primaryLight = Color(0xFF60AD5E); // Medium green
+  static const primaryDark = Color(0xFF005005); // Darker green
+  static const accentColor = Color(0xFF8BC34A); // Light green
+  static const backgroundColor = Color(0xFFF5F5F5); // Light gray background
+  static const cardColor = Colors.white;
+
   Future<void> _saveNote() async {
     final text = _noteController.text.trim();
     if (text.isEmpty) return;
@@ -29,21 +37,40 @@ class _NotesPageState extends State<NotesPage> {
         await _firestore
             .collection('notes')
             .doc(_editingNoteId)
-            .update({'content': text});
+            .update({'content': text, 'updatedAt': FieldValue.serverTimestamp()});
       } else {
         // Add new note
         await _firestore.collection('notes').add({
           'content': text,
           'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
         });
       }
 
       _noteController.clear();
       _editingNoteId = null;
-      _showNoteForm = false; // Hide form after saving
+      _showNoteForm = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_editingNoteId != null ? 'Note updated' : 'Note added'),
+          backgroundColor: primaryColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -53,22 +80,52 @@ class _NotesPageState extends State<NotesPage> {
     setState(() {
       _noteController.text = content;
       _editingNoteId = id;
-      _showNoteForm = true; // Show form when editing
+      _showNoteForm = true;
     });
   }
 
   Future<void> _deleteNote(String id) async {
-    await _firestore.collection('notes').doc(id).delete();
+    try {
+      await _firestore.collection('notes').doc(id).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Note deleted'),
+          backgroundColor: primaryColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Delete failed: $e"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _logout() async {
     try {
       await _auth.signOut();
-      // You might want to navigate to login screen after logout
       Navigator.of(context).pushNamed("/login");
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Logout failed: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Logout failed: $e"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     }
   }
 
@@ -91,15 +148,23 @@ class _NotesPageState extends State<NotesPage> {
   @override
   Widget build(BuildContext context) {
     final notesRef =
-        _firestore.collection('notes').orderBy('createdAt', descending: true);
+        _firestore.collection('notes').orderBy('updatedAt', descending: true);
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // ← This removes the left arrow
-        title: const Text('Notes Manager'),
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'My Notes',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        backgroundColor: primaryColor,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: _logout,
             tooltip: 'Logout',
           ),
@@ -107,42 +172,90 @@ class _NotesPageState extends State<NotesPage> {
       ),
       body: Column(
         children: [
-          // Input field (only visible when _showNoteForm is true)
+          // Note input form (only visible when _showNoteForm is true)
           if (_showNoteForm)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _noteController,
-                      decoration: const InputDecoration(
-                        hintText: 'Write a note...',
-                        border: OutlineInputBorder(),
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _noteController,
+                        decoration: InputDecoration(
+                          hintText: 'Write your note here...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: primaryLight),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                                color: primaryColor, width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                        ),
+                        maxLines: 3,
+                        autofocus: true,
                       ),
-                      autofocus: true,
-                    ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _showNoteForm = false;
+                                _noteController.clear();
+                                _editingNoteId = null;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey,
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _saveNote,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : Text(
+                                    _editingNoteId != null ? 'UPDATE' : 'SAVE',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _saveNote,
-                    child: Text(_editingNoteId != null ? 'Update' : 'Save'),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        _showNoteForm = false;
-                        _noteController.clear();
-                        _editingNoteId = null;
-                      });
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
-
-          if (_showNoteForm) const Divider(),
 
           // Notes list
           Expanded(
@@ -150,11 +263,39 @@ class _NotesPageState extends State<NotesPage> {
               stream: notesRef.snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Something went wrong.'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 48, color: Colors.red),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Something went wrong',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Please try again later',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                    ),
+                  );
                 }
 
                 final notes = snapshot.data?.docs ?? [];
@@ -164,10 +305,11 @@ class _NotesPageState extends State<NotesPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.note_add, size: 64, color: Colors.grey),
+                        Icon(Icons.note_add,
+                            size: 64, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
                         const Text(
-                          'Nothing here yet',
+                          'No notes yet',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey,
@@ -175,7 +317,7 @@ class _NotesPageState extends State<NotesPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Tap the "+" button to add your first note',
+                          'Tap the + button to add your first note',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,
@@ -187,26 +329,60 @@ class _NotesPageState extends State<NotesPage> {
                 }
 
                 return ListView.builder(
+                  padding: const EdgeInsets.all(16),
                   itemCount: notes.length,
                   itemBuilder: (context, index) {
                     final doc = notes[index];
                     final noteId = doc.id;
                     final content = doc['content'] ?? '';
+                    final updatedAt = doc['updatedAt'] as Timestamp?;
+                    final createdAt = doc['createdAt'] as Timestamp?;
 
-                    return ListTile(
-                      title: Text(content),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => _startEdit(noteId, content),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteNote(noteId),
-                          ),
-                        ],
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              content,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              updatedAt != null
+                                  ? 'Updated: ${_formatDate(updatedAt.toDate())}'
+                                  : createdAt != null
+                                      ? 'Created: ${_formatDate(createdAt.toDate())}'
+                                      : '',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit,
+                                      color: primaryColor),
+                                  onPressed: () => _startEdit(noteId, content),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.redAccent),
+                                  onPressed: () => _deleteNote(noteId),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -218,8 +394,17 @@ class _NotesPageState extends State<NotesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _toggleNoteForm,
-        child: Icon(_showNoteForm ? Icons.close : Icons.add),
+        backgroundColor: primaryColor,
+        elevation: 4,
+        child: Icon(
+          _showNoteForm ? Icons.close : Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
