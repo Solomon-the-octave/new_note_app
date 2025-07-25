@@ -71,11 +71,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unexpected error: $e')),
+        SnackBar(
+          content: Text('Unexpected error: $e'),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     } finally {
       setState(() {
@@ -86,18 +100,74 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Define professional green color palette
+    const primaryColor = Color(0xFF2E7D32); // Dark green
+    const primaryLight = Color(0xFF60AD5E); // Medium green
+    const primaryDark = Color(0xFF005005); // Darker green
+    const accentColor = Color(0xFF8BC34A); // Light green
+    const backgroundColor = Color(0xFFF5F5F5); // Light gray background
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text(
+          'Create Account',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Header
+              const SizedBox(height: 16),
+              const Text(
+                'Join Us Today',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: primaryDark,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Create your account to get started',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+
               // Full Name
               TextFormField(
                 controller: _fullNameController,
-                decoration: const InputDecoration(labelText: 'Full Name'),
+                decoration: InputDecoration(
+                  labelText: 'Full Name',
+                  prefixIcon: const Icon(Icons.person, color: primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryColor, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 16),
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your full name';
@@ -105,12 +175,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Email
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.email, color: primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryColor, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 16),
+                ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -122,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return isValid ? null : 'Invalid email format';
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Password
               TextFormField(
@@ -130,11 +213,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
+                  prefixIcon: const Icon(Icons.lock, color: primaryColor),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_off
                           : Icons.visibility,
+                      color: primaryColor,
                     ),
                     onPressed: () {
                       setState(() {
@@ -142,6 +227,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       });
                     },
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryColor, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 16),
                 ),
                 validator: (value) {
                   if (value == null || value.length < 6) {
@@ -150,13 +245,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Confirm Password
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirm Password'),
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: const Icon(Icons.lock_outline, color: primaryColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: primaryColor, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 16, horizontal: 16),
+                ),
                 validator: (value) {
                   if (value != _passwordController.text) {
                     return 'Passwords do not match';
@@ -164,20 +272,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Register Button
               SizedBox(
-                width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _register,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 3,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
                         )
-                      : const Text('Register'),
+                      : const Text(
+                          'REGISTER',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
+              ),
+              const SizedBox(height: 24),
+
+              // Divider
+              Row(
+                children: const [
+                  Expanded(child: Divider(color: Colors.grey)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('OR', style: TextStyle(color: Colors.grey)),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey)),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -189,7 +329,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
                   );
                 },
-                child: const Text('Already have an account? Login'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: RichText(
+                  text: const TextSpan(
+                    text: 'Already have an account? ',
+                    style: TextStyle(color: Colors.grey),
+                    children: [
+                      TextSpan(
+                        text: 'Login',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),
